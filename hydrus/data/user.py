@@ -55,7 +55,9 @@ def authenticate_user(id_: int, paraphrase: str, session: Session) -> bool:
     return generated_hash == hashvalue
 
 
-def check_authorization(request: LocalProxy, session: Session) -> bool:
+def check_authorization(request, session: Session) -> bool:
     """Check if the request object has the correct authorization."""
-    auth = request.authorization
-    return authenticate_user(auth.username, auth.password, session)
+    token = request.auth.split()[1]
+    token = base64.b64decode(token).decode('utf-8')
+    username, password = token.split(':')
+    return authenticate_user(username, password, session)
