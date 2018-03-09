@@ -1,5 +1,6 @@
 """Exceptions for the crud operations."""
 from typing import Dict, Tuple, Union
+from falcon import HTTP_400, HTTP_404, HTTPStatus
 
 
 class ClassNotFound(Exception):
@@ -9,9 +10,9 @@ class ClassNotFound(Exception):
         """Constructor."""
         self.type_ = type_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The class %s is not a valid/defined RDFClass" % self.type_}
+        return HTTP_400, {"message": "The class %s is not a valid/defined RDFClass" % self.type_}
 
 
 class InstanceNotFound(Exception):
@@ -22,12 +23,12 @@ class InstanceNotFound(Exception):
         self.type_ = type_
         self.id_ = id_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
         if str(self.id_) is None:
-            return 404, {"message": "Instance of type %s not found" % (self.type_)}
+            return HTTP_404, {"message": "Instance of type %s not found" % (self.type_)}
         else:
-            return 404, {"message": "Instance of type %s with ID %s not found" % (self.type_, str(self.id_))}
+            return HTTP_404, {"message": "Instance of type %s with ID %s not found" % (self.type_, str(self.id_))}
 
 
 class PropertyNotFound(Exception):
@@ -37,9 +38,9 @@ class PropertyNotFound(Exception):
         """Constructor."""
         self.type_ = type_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The property %s is not a valid/defined Property" % self.type_}
+        return HTTP_400, {"message": "The property %s is not a valid/defined Property" % self.type_}
 
 
 class InstanceExists(Exception):
@@ -50,12 +51,12 @@ class InstanceExists(Exception):
         self.type_ = type_
         self.id_ = id_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
         if str(self.id_) is None:
-            return 400, {"message": "Instance of type %salready exists" % (self.type_)}
+            return HTTP_400, {"message": "Instance of type %salready exists" % (self.type_)}
         else:
-            return 400, {"message": "Instance of type %s with ID %salready exists" % (self.type_, str(self.id_))}
+            return HTTP_400, {"message": "Instance of type %s with ID %salready exists" % (self.type_, str(self.id_))}
 
 
 class NotInstanceProperty(Exception):
@@ -65,9 +66,9 @@ class NotInstanceProperty(Exception):
         """Constructor."""
         self.type_ = type_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The property %s is not an Instance property" % self.type_}
+        return HTTP_400, {"message": "The property %s is not an Instance property" % self.type_}
 
 
 class NotAbstractProperty(Exception):
@@ -77,9 +78,9 @@ class NotAbstractProperty(Exception):
         """Constructor."""
         self.type_ = type_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The property %s is not an Abstract property" % self.type_}
+        return HTTP_400, {"message": "The property %s is not an Abstract property" % self.type_}
 
 
 class UserExists(Exception):
@@ -89,9 +90,9 @@ class UserExists(Exception):
         """Constructor."""
         self.id_ = id_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The user with ID %s already exists" % str(self.id_)}
+        return HTTP_400, {"message": "The user with ID %s already exists" % str(self.id_)}
 
 
 class UserNotFound(Exception):
@@ -101,6 +102,6 @@ class UserNotFound(Exception):
         """Constructor."""
         self.id_ = id_
 
-    def get_HTTP(self) -> Tuple[int, Dict[str, str]]:
+    def get_HTTP(self) -> Tuple[HTTPStatus, Dict[str, str]]:
         """Return the HTTP response for the Exception."""
-        return 400, {"message": "The User with ID %s is not a valid/defined User" % str(self.id_)}
+        return HTTP_400, {"message": "The User with ID %s is not a valid/defined User" % str(self.id_)}
