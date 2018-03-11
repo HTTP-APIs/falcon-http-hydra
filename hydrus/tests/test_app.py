@@ -291,20 +291,21 @@ class TestCases(ViewsTestCase):
     #                 delete_response = self.client.delete(endpoints[collection_name]+'/'+id_)
     #                 assert delete_response.status_code == 405
     #
-    # def test_Endpoints_Contexts(self):
-    #     """Test all endpoints contexts are generated properly."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             response_get = self.client.get(endpoints[collection_name])
-    #             assert response_get.status_code == 200
-    #             context = json.loads(response_get.data.decode('utf-8'))["@context"]
-    #             response_context = self.client.get(context)
-    #             response_context_data = json.loads(response_context.data.decode('utf-8'))
-    #             assert response_context.status_code == 200
-    #             assert "@context" in response_context_data
+    def test_Endpoints_Contexts(self):
+        """Test all endpoints contexts are generated properly."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                response_get = self.simulate_get(endpoints[collection_name])
+                assert response_get.status_code == 200
+                context = response_get.json["@context"]
+                if context:
+                    response_context = self.simulate_get(context)
+                    response_context_data = response_context.json
+                    assert response_context.status_code == 200
+                    assert "@context" in response_context_data
 
 
 if __name__ == '__main__':
