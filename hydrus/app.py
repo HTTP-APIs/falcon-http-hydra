@@ -143,6 +143,52 @@ class Item(object):
 
 
 
+class ItemCollection(object):
+    """Handle operation related to ItemCollection (a collection of items)."""
+
+    def on_get(self, req, resp, type_):
+        """Retrieve a collection of items from the database."""
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        if checkEndpoint(resp, "GET", type_):
+            # Collections
+            if type_ in get_doc(resp).collections:
+
+                collection = get_doc(resp).collections[type_]["collection"]
+                try:
+                    resp.media = crud.get_collection(get_api_name(resp), collection.class_.title, session=get_session(resp))
+                    set_response_headers(resp)
+
+                except Exception as e:
+                    status_code, message = e.get_HTTP()
+                    resp.media = message
+                    set_response_headers(resp, status_code=status_code)
+
+            # Non Collection classes
+            elif type_ in get_doc(resp).parsed_classes and type_+"Collection" not in get_doc(resp).collections:
+                try:
+                    resp.media = hydrafy(resp, crud.get_single(type_, api_name=get_api_name(resp), session=get_session(resp)))
+                    return set_response_headers(resp)
+
+                except Exception as e:
+                    status_code, message = e.get_HTTP()
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+
+
+
 class Contexts(object):
     """Dynamically genereated contexts."""
 
@@ -172,10 +218,10 @@ def app_factory(API_NAME: str, gsm) -> falcon.API:
     api = falcon.API(middleware=[gsm])
 
     api.add_route("/"+API_NAME+"/",Index())
-    api.add_route("/"+API_NAME+"/vocab",Vocab())
+    api.add_route("/" + API_NAME + "/vocab", Vocab())
     api.add_route("/"+API_NAME+"/contexts/{category}"+".jsonld", Contexts())
     api.add_route("/"+API_NAME+"/contexts/EntryPoint.jsonld",Entrypoint())
-   # api.add_route("/"+API_NAME+"/{type_}", ItemCollection())
+    api.add_route("/"+API_NAME+"/{type_}", ItemCollection())
     api.add_route("/"+API_NAME+"/{type_}/{id_:int()}", Item())
 
     return api
