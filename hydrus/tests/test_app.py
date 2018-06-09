@@ -86,26 +86,26 @@ class TestCases(ViewsTestCase):
         assert response_post.status_code == 405
         assert response_delete.status_code == 405
 
-    # def test_Vocab(self):
-    #     """Test the vocab."""
-    #     response_get = self.simulate_get("/"+ self.API_NAME + "/vocab#")
-    #     print(response_get.text)
-    #     response_get_data = response_get.json
-    #
-    #     assert "@context" in response_get_data
-    #     assert response_get_data["@type"] == "ApiDocumentation"
-    #     assert response_get_data["@id"] == self.HYDRUS_SERVER_URL + self.API_NAME + "/vocab"
-    #     assert response_get.status_code == 200
-    #
-    #     response_delete = self.simulate_delete("/"+self.API_NAME+"/vocab#")
-    #     assert response_delete.status_code == 405
-    #
-    #     response_put = self.simulate_put("/"+self.API_NAME+"/vocab#", json=dict(foo='bar'))
-    #     assert response_put.status_code == 405
-    #
-    #     response_post = self.simulate_post("/"+self.API_NAME+"/vocab#", json=dict(foo='bar'))
-    #     assert response_post.status_code == 405
-    #
+    def test_Vocab(self):
+        """Test the vocab."""
+        response_get = self.simulate_get("/"+ self.API_NAME + "/vocab")
+        print(response_get.text)
+        response_get_data = response_get.json
+
+        assert "@context" in response_get_data
+        assert response_get_data["@type"] == "ApiDocumentation"
+        assert response_get_data["@id"] == self.HYDRUS_SERVER_URL + self.API_NAME + "/vocab"
+        assert response_get.status_code == 200
+
+        response_delete = self.simulate_delete("/"+self.API_NAME+"/vocab")
+        assert response_delete.status_code == 405
+
+        response_put = self.simulate_put("/"+self.API_NAME+"/vocab", json=dict(foo='bar'))
+        assert response_put.status_code == 405
+
+        response_post = self.simulate_post("/"+self.API_NAME+"/vocab", json=dict(foo='bar'))
+        assert response_post.status_code == 405
+
     def test_Collections_GET(self):
         """Test GET on collection endpoints."""
         index = self.simulate_get("/"+self.API_NAME)
@@ -121,122 +121,122 @@ class TestCases(ViewsTestCase):
                 assert "@id" in response_get_data
                 assert "@type" in response_get_data
                 assert "members" in response_get_data
-    #
-    # def test_Collections_PUT(self):
-    #     """Test insert data to the collection."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             collection = self.doc.collections[collection_name]["collection"]
-    #             dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #             good_response_put = self.client.put(endpoints[collection_name], data=json.dumps(dummy_object))
-    #             assert good_response_put.status_code == 201
-    #
-    # def test_object_POST(self):
-    #     """Test replace of a given object using ID."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             collection = self.doc.collections[collection_name]["collection"]
-    #             class_ = self.doc.parsed_classes[collection.class_.title]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #             initial_put_response = self.client.put(endpoints[collection_name], data=json.dumps(dummy_object))
-    #             assert initial_put_response.status_code == 201
-    #             response = json.loads(initial_put_response.data.decode('utf-8'))
-    #             regex = r'(.*)ID (\d)* (.*)'
-    #             matchObj = re.match(regex, response["message"])
-    #             assert matchObj is not None
-    #             id_ = matchObj.group(2)
-    #             if "POST" in class_methods:
-    #                 dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #                 post_replace_response = self.client.post(endpoints[collection_name]+'/'+id_, data=json.dumps(dummy_object))
-    #                 assert post_replace_response.status_code == 200
-    #
-    # def test_object_DELETE(self):
-    #     """Test DELETE of a given object using ID."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             collection = self.doc.collections[collection_name]["collection"]
-    #             class_ = self.doc.parsed_classes[collection.class_.title]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #             initial_put_response = self.client.put(endpoints[collection_name], data=json.dumps(dummy_object))
-    #             assert initial_put_response.status_code == 201
-    #             response = json.loads(initial_put_response.data.decode('utf-8'))
-    #             regex = r'(.*)ID (\d)* (.*)'
-    #             matchObj = re.match(regex, response["message"])
-    #             assert matchObj is not None
-    #             id_ = matchObj.group(2)
-    #             if "DELETE" in class_methods:
-    #                 delete_response = self.client.delete(endpoints[collection_name]+'/'+id_)
-    #                 assert delete_response.status_code == 200
-    #
-    # def test_object_PUT_at_id(self):
-    #     """Create object in collection using PUT at specific ID."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             collection = self.doc.collections[collection_name]["collection"]
-    #             class_ = self.doc.parsed_classes[collection.class_.title]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #             if "PUT" in class_methods:
-    #                 dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #                 put_response = self.client.put(endpoints[collection_name]+'/'+str(random.randint(100, 1000)),
-    #                                           data=json.dumps(dummy_object))
-    #                 assert put_response.status_code == 201
-    #
-    # def test_endpointClass_PUT(self):
-    #     """Check non collection Class PUT."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for class_name in endpoints:
-    #         if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
-    #             class_ = self.doc.parsed_classes[class_name]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             if "PUT" in class_methods:
-    #                 dummy_object = gen_dummy_object(class_.title, self.doc)
-    #                 put_response = self.client.put(endpoints[class_name], data=json.dumps(dummy_object))
-    #                 assert put_response.status_code == 201
-    #
-    # def test_endpointClass_POST(self):
-    #     """Check non collection Class POST."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for class_name in endpoints:
-    #         if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
-    #             class_ = self.doc.parsed_classes[class_name]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             if "POST" in class_methods:
-    #                 dummy_object = gen_dummy_object(class_.title, self.doc)
-    #                 put_response = self.client.post(endpoints[class_name], data=json.dumps(dummy_object))
-    #                 assert put_response.status_code == 201
-    #
-    # def test_endpointClass_DELETE(self):
-    #     """Check non collection Class DELETE."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for class_name in endpoints:
-    #         if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
-    #             class_ = self.doc.parsed_classes[class_name]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             if "DELETE" in class_methods:
-    #                 put_response = self.client.delete(endpoints[class_name])
-    #                 assert put_response.status_code == 200
-    #
+
+    def test_Collections_PUT(self):
+        """Test insert data to the collection."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                collection = self.doc.collections[collection_name]["collection"]
+                dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                good_response_put = self.simulate_put(endpoints[collection_name], json=dummy_object)
+                assert good_response_put.status_code == 201
+
+    def test_object_POST(self):
+        """Test replace of a given object using ID."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                collection = self.doc.collections[collection_name]["collection"]
+                class_ = self.doc.parsed_classes[collection.class_.title]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                initial_put_response = self.simulate_put(endpoints[collection_name], json=dummy_object)
+                assert initial_put_response.status_code == 201
+                response = initial_put_response.json
+                regex = r'(.*)ID (\d)* (.*)'
+                matchObj = re.match(regex, response["message"])
+                assert matchObj is not None
+                id_ = matchObj.group(2)
+                if "POST" in class_methods:
+                    dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                    post_replace_response = self.simulate_post(endpoints[collection_name]+'/'+id_, json=dummy_object)
+                    assert post_replace_response.status_code == 200
+
+    def test_object_DELETE(self):
+        """Test DELETE of a given object using ID."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                collection = self.doc.collections[collection_name]["collection"]
+                class_ = self.doc.parsed_classes[collection.class_.title]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                initial_put_response = self.simulate_put(endpoints[collection_name], json=dummy_object)
+                assert initial_put_response.status_code == 201
+                response = initial_put_response.json
+                regex = r'(.*)ID (\d)* (.*)'
+                matchObj = re.match(regex, response["message"])
+                assert matchObj is not None
+                id_ = matchObj.group(2)
+                if "DELETE" in class_methods:
+                    delete_response = self.simulate_delete(endpoints[collection_name]+'/'+id_)
+                    assert delete_response.status_code == 200
+
+    def test_object_PUT_at_id(self):
+        """Create object in collection using PUT at specific ID."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                collection = self.doc.collections[collection_name]["collection"]
+                class_ = self.doc.parsed_classes[collection.class_.title]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                if "PUT" in class_methods:
+                    dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                    put_response = self.simulate_put(endpoints[collection_name]+'/'+str(random.randint(100, 1000)),
+                                              json=dummy_object)
+                    assert put_response.status_code == 201
+
+    def test_endpointClass_PUT(self):
+        """Check non collection Class PUT."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for class_name in endpoints:
+            if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
+                class_ = self.doc.parsed_classes[class_name]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                if "PUT" in class_methods:
+                    dummy_object = gen_dummy_object(class_.title, self.doc)
+                    put_response = self.simulate_put(endpoints[class_name], json=dummy_object)
+                    assert put_response.status_code == 201
+
+    def test_endpointClass_POST(self):
+        """Check non collection Class POST."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for class_name in endpoints:
+            if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
+                class_ = self.doc.parsed_classes[class_name]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                if "POST" in class_methods:
+                    dummy_object = gen_dummy_object(class_.title, self.doc)
+                    put_response = self.simulate_post(endpoints[class_name], json=dummy_object)
+                    assert put_response.status_code == 201
+
+    def test_endpointClass_DELETE(self):
+        """Check non collection Class DELETE."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for class_name in endpoints:
+            if class_name not in self.doc.collections and class_name not in ["@context", "@id", "@type"]:
+                class_ = self.doc.parsed_classes[class_name]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                if "DELETE" in class_methods:
+                    put_response = self.simulate_delete(endpoints[class_name])
+                    assert put_response.status_code == 200
+
     def test_endpointClass_GET(self):
         """Check non collection Class GET."""
         index = self.simulate_get("/"+self.API_NAME)
@@ -255,42 +255,42 @@ class TestCases(ViewsTestCase):
                         assert "@id" in response_get_data
                         assert "@type" in response_get_data
 
-    # def test_bad_objects(self):
-    #     """Checks if bad objects are added or not."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             bad_response_put = self.client.put(endpoints[collection_name], data=json.dumps(dict(foo='bar')))
-    #             assert bad_response_put.status_code == 400
-    #
-    # def test_bad_requests(self):
-    #     """Checks if bad requests are handled or not."""
-    #     index = self.client.get("/"+self.API_NAME)
-    #     assert index.status_code == 200
-    #     endpoints = json.loads(index.data.decode('utf-8'))
-    #     for collection_name in endpoints:
-    #         if collection_name in self.doc.collections:
-    #             collection = self.doc.collections[collection_name]["collection"]
-    #             class_ = self.doc.parsed_classes[collection.class_.title]["class"]
-    #             class_methods = [x.method for x in class_.supportedOperation]
-    #             dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #             initial_put_response = self.client.put(endpoints[collection_name], data=json.dumps(dummy_object))
-    #             assert initial_put_response.status_code == 201
-    #             response = json.loads(initial_put_response.data.decode('utf-8'))
-    #             regex = r'(.*)ID (\d)* (.*)'
-    #             matchObj = re.match(regex, response["message"])
-    #             assert matchObj is not None
-    #             id_ = matchObj.group(2)
-    #             if "POST" not in class_methods:
-    #                 dummy_object = gen_dummy_object(collection.class_.title, self.doc)
-    #                 post_replace_response = self.client.post(endpoints[collection_name]+'/'+id_, data=json.dumps(dummy_object))
-    #                 assert post_replace_response.status_code == 405
-    #             if "DELETE" not in class_methods:
-    #                 delete_response = self.client.delete(endpoints[collection_name]+'/'+id_)
-    #                 assert delete_response.status_code == 405
-    #
+    def test_bad_objects(self):
+        """Checks if bad objects are added or not."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                bad_response_put = self.simulate_put(endpoints[collection_name], json=dict(foo='bar'))
+                assert bad_response_put.status_code == 400
+
+    def test_bad_requests(self):
+        """Checks if bad requests are handled or not."""
+        index = self.simulate_get("/"+self.API_NAME)
+        assert index.status_code == 200
+        endpoints = index.json
+        for collection_name in endpoints:
+            if collection_name in self.doc.collections:
+                collection = self.doc.collections[collection_name]["collection"]
+                class_ = self.doc.parsed_classes[collection.class_.title]["class"]
+                class_methods = [x.method for x in class_.supportedOperation]
+                dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                initial_put_response = self.simulate_put(endpoints[collection_name], json=dummy_object)
+                assert initial_put_response.status_code == 201
+                response = initial_put_response.json
+                regex = r'(.*)ID (\d)* (.*)'
+                matchObj = re.match(regex, response["message"])
+                assert matchObj is not None
+                id_ = matchObj.group(2)
+                if "POST" not in class_methods:
+                    dummy_object = gen_dummy_object(collection.class_.title, self.doc)
+                    post_replace_response = self.simulate_post(endpoints[collection_name]+'/'+id_, json=dummy_object)
+                    assert post_replace_response.status_code == 405
+                if "DELETE" not in class_methods:
+                    delete_response = self.simulate_delete(endpoints[collection_name]+'/'+id_)
+                    assert delete_response.status_code == 405
+
     def test_Endpoints_Contexts(self):
         """Test all endpoints contexts are generated properly."""
         index = self.simulate_get("/"+self.API_NAME)
