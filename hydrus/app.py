@@ -25,13 +25,14 @@ def failed_authentication(resp: falcon.Response):
     resp = set_response_headers(resp,
                                     headers={'WWW-Authenticate': 'Basic realm="Login Required"'}, status_code=falcon.HTTP_401)
 
+
 def set_response_headers(resp: falcon.Response, ct: str="application/ld+json", headers: Dict[str, Any]={}, status_code = falcon.HTTP_200) -> falcon.Response:
     resp.status = status_code
     resp.set_headers(headers)
     resp.set_header('Content-type', ct)
     resp.set_header('Link' ,'<' + get_hydrus_server_url(resp) + \
         get_api_name(resp)+'/vocab>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"')
-    return resp
+
 
 # def set_response_headers(resp: Response, ct: str="application/ld+json", headers: List[Dict[str, Any]]=[], status_code = falcon.HTTP_200) -> Response:
 #
@@ -80,6 +81,7 @@ def checkClassOp(resp: falcon.Response, class_type: str, method: str) -> bool:
         if supportedOp.method == method:
             return True
     return False
+
 
 
 class Index(object):
@@ -141,6 +143,142 @@ class Item(object):
                 resp.media = message
                 resp = set_response_headers(resp, status_code)
 
+        resp.status = falcon.HTTP_405
+
+    def on_post(self, req, resp, id_: int, type_: str):
+        """Update object of type<type_> at ID<id_> with new object_ using HTTP POST.
+
+        :param id_ - ID of Item to be updated
+        :param type_ - Type(Class name) of Item to be updated
+        """
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        class_type = get_doc(resp).collections[type_]["collection"].class_.title
+
+        if checkClassOp(resp, class_type, "POST"):
+            # Check if class_type supports POST operation
+            object_ = req.media
+            obj_type = getType(resp, class_type, "POST")
+            # Load new object and type
+            if validObject(object_):
+                if object_["@type"] == obj_type:
+                    try:
+                        # Update the right ID if the object is valid and matches
+                        # type of Item
+                        object_id = crud.update(object_=object_, id_=id_, type_=object_[
+                                                "@type"], session=get_session(resp), api_name=get_api_name(resp))
+                        headers_ = [{"Location": get_hydrus_server_url(resp
+                        ) + get_api_name(resp) + "/" + type_ + "/" + str(object_id)}]
+                        response = {
+                            "message": "Object with ID %s successfully updated" % (object_id)}
+                        resp.media = response
+                        return set_response_headers(resp, headers=headers_[0])
+                    except Exception as e:
+                        status_code, message = e.get_HTTP()
+                        resp.media = message
+                        return set_response_headers(resp, status_code)
+
+            return set_response_headers(resp, status_code= falcon.HTTP_400)
+
+        resp.status = falcon.HTTP_405
+
+
+    def on_put(self, req, resp, id_: int, type_: str):
+        """Add new object_ optional <id_> parameter using HTTP PUT.
+
+        :param id_ - ID of Item to be updated
+        :param type_ - Type(Class name) of Item to be updated
+        """
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        class_type = get_doc(resp).collections[type_]["collection"].class_.title
+
+        if checkClassOp(resp, class_type, "PUT"):
+            # Check if class_type supports PUT operation
+            object_ = req.media
+            print(object_)
+            obj_type = getType(resp, class_type, "PUT")
+            # Load new object and type
+            if validObject(object_):
+                if object_["@type"] == obj_type:
+                    try:
+                        # Add the object with given ID
+                        object_id = crud.insert(
+                            object_=object_, id_=id_, session=get_session(resp))
+                        headers_ = [{"Location": get_hydrus_server_url(resp
+                        ) + get_api_name(resp) + "/" + type_ + "/" + str(object_id)}]
+                        response = {
+                            "message": "Object with ID %s successfully added" % (object_id)}
+                        resp.media = response
+                        set_response_headers(resp, headers=headers_[0], status_code= falcon.HTTP_201)
+                    except Exception as e:
+                        status_code, message = e.get_HTTP()
+                        resp.media = message
+                        resp = set_response_headers(resp, status_code)
+
+            #return set_response_headers(resp, status_code=400)
+
+        resp.status = falcon.HTTP_405
+
+
+    def on_delete(self, req, resp, id_: int, type_: str):
+        """Delete object with id=id_ from database."""
+
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        class_type = get_doc(resp).collections[type_]["collection"].class_.title
+
+        if checkClassOp(resp, class_type, "DELETE"):
+            # Check if class_type supports PUT operation
+            try:
+                # Delete the Item with ID == id_
+                crud.delete(id_, class_type, session=get_session(resp))
+                response = {
+                    "message": "Object with ID %s successfully deleted" % (id_)}
+                resp.media = response
+                return set_response_headers(resp)
+
+            except Exception as e:
+                status_code, message = e.get_HTTP()
+                resp.media = message
+                resp = set_response_headers(resp, status_code)
+
+        resp.status = falcon.HTTP_405
+
+
 
 
 class ItemCollection(object):
@@ -186,7 +324,158 @@ class ItemCollection(object):
                     resp.media = message
                     return set_response_headers(resp, status_code=status_code)
 
+    def on_put(self, req, resp, type_: str):
+        """
+        Method executed for PUT requests.
+        Used to add an item to a collection
 
+        :param type_ - Item type
+        """
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        endpoint_ = checkEndpoint(resp, "PUT", type_)
+        if endpoint_['method']:
+            # If endpoint and PUT method is supported in the API
+            object_ = req.media
+
+            if type_ in get_doc(resp).collections:
+                # If collection name in document's collections
+                collection = get_doc(resp).collections[type_]["collection"]
+
+                # title of HydraClass object corresponding to collection
+                obj_type = collection.class_.title
+
+                if validObject(object_):
+                    # If Item in request's JSON is a valid object
+                    # ie. @type is one of the keys in object_
+                    if object_["@type"] == obj_type:
+                        # If the right Item type is being added to the collection
+                        try:
+                            # Insert object and return location in Header
+                            object_id = crud.insert(
+                                object_=object_, session=get_session(resp))
+                            headers_ = [{"Location": get_hydrus_server_url(resp
+                            ) + get_api_name(resp) + "/" + type_ + "/" + str(object_id)}]
+                            response = {
+                                "message": "Object with ID %s successfully added" % (object_id)}
+                            resp.media = response
+                            return set_response_headers(resp, headers=headers_[0], status_code=falcon.HTTP_201)
+                        except Exception as e:
+                            status_code, message = e.get_HTTP()
+                            resp.media = message
+                            return set_response_headers(resp, status_code=status_code)
+
+                return set_response_headers(resp, status_code=falcon.HTTP_400)
+
+            elif type_ in get_doc(resp).parsed_classes and type_ + "Collection" not in get_doc(resp).collections:
+                # If type_ is in parsed_classes but is not a collection
+                obj_type = getType(resp, type_, "PUT")
+                if object_["@type"] == obj_type:
+                    if validObject(object_):
+                        try:
+                            object_id = crud.insert(
+                                object_=object_, session=get_session(resp))
+                            headers_ = [{"Location": get_hydrus_server_url(resp
+                            ) + get_api_name(resp) + "/" + type_ + "/"}]
+                            response = {"message": "Object successfully added"}
+                            resp.media = response
+                            return set_response_headers(resp, headers=headers_[0], status_code=falcon.HTTP_201)
+                        except Exception as e:
+                            status_code, message = e.get_HTTP()
+                            resp.media = message
+                            return set_response_headers(resp, status_code=status_code)
+
+                return set_response_headers(resp, status_code=falcon.HTTP_400)
+
+
+    def on_post(self, req, resp, type_: str):
+        """
+        Method executed for POST requests.
+        Used to update a non-collection class.
+
+        :param type_ - Item type
+        """
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        endpoint_ = checkEndpoint(resp, "POST", type_)
+        if endpoint_['method']:
+            object_ = req.media
+            if type_ in get_doc(resp).parsed_classes and type_ + "Collection" not in get_doc(resp).collections:
+                obj_type = getType(resp, type_, "POST")
+                if validObject(object_):
+                    if object_["@type"] == obj_type:
+                        try:
+                            crud.update_single(
+                                object_=object_, session=get_session(resp), api_name=get_api_name(resp))
+                            headers_ = [{"Location": get_hydrus_server_url(resp
+                            ) + get_api_name(resp) + "/" + type_ + "/"}]
+                            response = {"message": "Object successfully updated"}
+                            resp.media = response
+                            return set_response_headers(resp, headers=headers_[0])
+                        except Exception as e:
+                            status_code, message = e.get_HTTP()
+                            resp.media = message
+                            return set_response_headers(resp, status_code=status_code)
+
+                return set_response_headers(resp, status_code=falcon.HTTP_400)
+
+
+
+    def on_delete(self, req, resp, type_: str):
+        """
+        Method executed for DELETE requests.
+        Used to delete a non-collection class.
+
+        :param type_ - Item type
+        """
+        if get_authentication(resp):
+            if req.auth is None:
+                return failed_authentication(resp)
+            else:
+                try:
+                    auth = check_authorization(req, get_session(resp))
+                    if auth is False:
+                        return failed_authentication(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()  # type: ignore
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
+
+        endpoint_ = checkEndpoint(resp, "DELETE", type_)
+        if endpoint_['method']:
+            # No Delete Operation for collections
+            if type_ in get_doc(resp).parsed_classes and type_ + "Collection" not in get_doc(resp).collections:
+                try:
+                    crud.delete_single(type_, session=get_session(resp))
+                    response = {"message": "Object successfully deleted"}
+                    resp.media = response
+                    return set_response_headers(resp)
+                except Exception as e:
+                    status_code, message = e.get_HTTP()
+                    resp.media = message
+                    return set_response_headers(resp, status_code=status_code)
 
 
 class Contexts(object):
@@ -226,7 +515,3 @@ def app_factory(API_NAME: str, gsm) -> falcon.API:
 
     return api
 
-
-if __name__ == "__main__":
-
-    app = app_factory("api")
