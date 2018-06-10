@@ -2,6 +2,8 @@
 
 import unittest
 
+
+from falcon import testing, HTTP_404, HTTP_400
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker,scoped_session
 import hydrus.data.crud as crud
@@ -11,6 +13,7 @@ from hydrus.hydraspec.doc_writer_sample import api_doc as doc
 import random
 import string
 import pdb
+
 
 
 def gen_dummy_object(class_, doc):
@@ -28,12 +31,12 @@ def gen_dummy_object(class_, doc):
         return object_
 
 
-class TestCRUD(unittest.TestCase):
+class TestCRUD(testing.TestCase):
     """Test class for CRUD Tests."""
 
-    @classmethod
-    def setUpClass(self):
+    def setUp(self):
         """Database setup before the CRUD tests."""
+        super(TestCRUD, self).setUp()
         print("Creating a temporary datatbsse...")
         engine = create_engine('sqlite:///:memory:')
         Base.metadata.create_all(engine)
@@ -47,6 +50,9 @@ class TestCRUD(unittest.TestCase):
         doc_parse.insert_properties(test_properties, self.session)
         print("Classes and properties added successfully.")
         print("Setup done, running tests...")
+
+
+class TestCases(TestCRUD):
 
     def test_insert(self):
         """Test CRUD insert."""
@@ -88,7 +94,8 @@ class TestCRUD(unittest.TestCase):
             get_response = crud.get(id_=id_, type_=object_["@type"], session=self.session, api_name="api")
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 404 == response_code
+        print(response_code)
+        assert HTTP_404 == response_code
 
     def test_get_id(self):
         """Test CRUD get when wrong/undefined ID is given."""
@@ -99,7 +106,7 @@ class TestCRUD(unittest.TestCase):
             get_response = crud.get(id_=id_, type_=type_, session=self.session, api_name="api")
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 404 == response_code
+        assert HTTP_404 == response_code
 
     def test_get_type(self):
         """Test CRUD get when wrong/undefined class is given."""
@@ -110,7 +117,7 @@ class TestCRUD(unittest.TestCase):
             get_response = crud.get(id_=id_, type_=type_, session=self.session, api_name="api")
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 400 == response_code
+        assert HTTP_400 == response_code
 
     def test_delete_type(self):
         """Test CRUD delete when wrong/undefined class is given."""
@@ -124,7 +131,7 @@ class TestCRUD(unittest.TestCase):
             delete_response = crud.delete(id_=id_, type_="otherClass", session=self.session)
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 400 == response_code
+        assert HTTP_400 == response_code
 
     def test_delete_id(self):
         """Test CRUD delete when wrong/undefined ID is given."""
@@ -136,7 +143,7 @@ class TestCRUD(unittest.TestCase):
             delete_response = crud.delete(id_=999, type_=object_["@type"], session=self.session)
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 404 == response_code
+        assert HTTP_404 == response_code
         assert type(insert_response) is int
         assert insert_response == id_
 
@@ -150,23 +157,20 @@ class TestCRUD(unittest.TestCase):
             insert_response = crud.insert(object_=object_, id_=id_, session=self.session)
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 400 == response_code
+        assert HTTP_400 == response_code
 
     def test_insert_id(self):
         """Test CRUD insert when used ID is given."""
         object_ = gen_dummy_object("dummyClass", self.doc)
         id_ = 1
+        insert_response = crud.insert(object_=object_, id_=id_, session=self.session)
         response_code = None
         try:
             insert_response = crud.insert(object_=object_, id_=id_, session=self.session)
         except Exception as e:
             response_code, message = e.get_HTTP()
-        assert 400 == response_code
+        assert HTTP_400 == response_code
 
-    @classmethod
-    def tearDownClass(self):
-        """Undo the setUp steps for the Class."""
-        self.session.close()
 
 
 if __name__ == '__main__':
