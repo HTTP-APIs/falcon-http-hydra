@@ -32,6 +32,7 @@ def set_response_headers(resp: falcon.Response, ct: str="application/ld+json", h
     resp.set_header('Content-type', ct)
     resp.set_header('Link' ,'<' + get_hydrus_server_url(resp) + \
         get_api_name(resp)+'/vocab>; rel="http://www.w3.org/ns/hydra/core#apiDocumentation"')
+    return resp
 
 
 # def set_response_headers(resp: Response, ct: str="application/ld+json", headers: List[Dict[str, Any]]=[], status_code = falcon.HTTP_200) -> Response:
@@ -136,12 +137,12 @@ class Item(object):
 
             try:
                 resp.media = hydrafy(resp, crud.get(id_, class_type, api_name=get_api_name(resp), session=get_session(resp)))
-                resp = set_response_headers(resp)
+                return set_response_headers(resp)
 
             except Exception as e:
                 status_code, message = e.get_HTTP()
                 resp.media = message
-                resp = set_response_headers(resp, status_code)
+                return set_response_headers(resp, status_code= status_code)
 
         resp.status = falcon.HTTP_405
 
@@ -218,7 +219,6 @@ class Item(object):
         if checkClassOp(resp, class_type, "PUT"):
             # Check if class_type supports PUT operation
             object_ = req.media
-            print(object_)
             obj_type = getType(resp, class_type, "PUT")
             # Load new object and type
             if validObject(object_):
@@ -232,13 +232,13 @@ class Item(object):
                         response = {
                             "message": "Object with ID %s successfully added" % (object_id)}
                         resp.media = response
-                        set_response_headers(resp, headers=headers_[0], status_code= falcon.HTTP_201)
+                        return set_response_headers(resp, headers=headers_[0], status_code= falcon.HTTP_201)
                     except Exception as e:
                         status_code, message = e.get_HTTP()
                         resp.media = message
-                        resp = set_response_headers(resp, status_code)
+                        return set_response_headers(resp, status_code=status_code)
 
-            #return set_response_headers(resp, status_code=400)
+            return set_response_headers(resp, status_code=falcon.HTTP_400)
 
         resp.status = falcon.HTTP_405
 
@@ -274,7 +274,7 @@ class Item(object):
             except Exception as e:
                 status_code, message = e.get_HTTP()
                 resp.media = message
-                resp = set_response_headers(resp, status_code)
+                return set_response_headers(resp, status_code= status_code)
 
         resp.status = falcon.HTTP_405
 
@@ -306,12 +306,12 @@ class ItemCollection(object):
                 collection = get_doc(resp).collections[type_]["collection"]
                 try:
                     resp.media = crud.get_collection(get_api_name(resp), collection.class_.title, session=get_session(resp))
-                    set_response_headers(resp)
+                    return set_response_headers(resp)
 
                 except Exception as e:
                     status_code, message = e.get_HTTP()
                     resp.media = message
-                    set_response_headers(resp, status_code=status_code)
+                    return set_response_headers(resp, status_code=status_code)
 
             # Non Collection classes
             elif type_ in get_doc(resp).parsed_classes and type_+"Collection" not in get_doc(resp).collections:
@@ -490,7 +490,7 @@ class Contexts(object):
                 return set_response_headers(resp)
 
             else:
-                return set_response_headers(resp, falcon.HTTP_404)
+                return set_response_headers(resp, status_code= falcon.HTTP_404)
 
         else:
             if category in get_doc(resp).parsed_classes:
@@ -498,7 +498,7 @@ class Contexts(object):
                 return set_response_headers(resp)
 
             else:
-                return set_response_headers(resp, falcon.HTTP_404)
+                return set_response_headers(resp, status_code=falcon.HTTP_404)
 
 
 def app_factory(API_NAME: str, gsm) -> falcon.API:
