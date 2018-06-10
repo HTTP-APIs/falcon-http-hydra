@@ -3,8 +3,8 @@
 
 from hydrus.hydraspec import doc_writer_sample
 from hydrus.data.db_models import engine
-from sqlalchemy.orm import sessionmaker,scoped_session
-from sqlalchemy.orm.session import Session
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.scoping import scoped_session
 from hydrus.hydraspec.doc_writer import HydraDoc
 import falcon
 from typing import Any, Iterator
@@ -59,7 +59,7 @@ def get_hydrus_server_url(resp) -> str:
 
     return hydrus_server_url
 
-def get_session(resp) -> Session:
+def get_session(resp) -> scoped_session:
     """Get the Database Session for the server."""
     try:
         session = resp.context['db_session']
