@@ -22,7 +22,7 @@ Hydrus supports the following features:
 Requirements
 -------------
 The system is built over the following standards and tools:
-- [Flask](http://flask.pocoo.org/) a Python based micro-framework for handling server requests and responses.
+- [Falcon](http://falconframework.org/) a Python based micro-framework for handling server requests and responses.
 - [JSON-LD](http://json-ld.org/spec/latest/json-ld/) as the preferred data format.
 - [Hydra](http://www.hydra-cg.com/) as the API standard.
 - [SQLAlchemy](http://www.sqlalchemy.org/) as the backend database connector for storage and related operations.
