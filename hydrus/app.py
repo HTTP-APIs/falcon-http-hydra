@@ -305,7 +305,7 @@ class ItemCollection(object):
 
                 collection = get_doc(resp).collections[type_]["collection"]
                 try:
-                    resp.media = crud.get_collection(get_api_name(resp), collection.class_.title, session=get_session(resp))
+                    resp.media = hydrafy(resp, crud.get_collection(get_api_name(resp), collection.class_.title, session=get_session(resp)))
                     return set_response_headers(resp)
 
                 except Exception as e:
