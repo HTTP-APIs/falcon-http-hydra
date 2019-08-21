@@ -15,7 +15,7 @@ setup(name='hydrus',
       install_requires=[
           'MarkupSafe==1.0',
           'SQLAlchemy==1.1.10',
-          'Werkzeug==0.12.2',
+          'Werkzeug==0.15.3',
           'aniso8601==1.2.1',
           'appdirs==1.4.3',
           'argparse==1.2.1',
